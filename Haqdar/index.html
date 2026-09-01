@@ -68,7 +68,7 @@
 
             try {
               // Connects directly to Member 2's Flask API endpoint
-              const response = await fetch(`http://127.0.0.1:5000/api/match?${params}`);
+              const response = await fetch(`https://haqdar-1wu2.onrender.com/api/match?age=${age}&income=${income}&state=${state}&category=${category}`);
               const data = await response.json();
               setResults(data.matches || []);
             } catch (error) {
