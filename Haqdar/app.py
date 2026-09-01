@@ -1,12 +1,19 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
 CORS(app)
 
 @app.route("/", methods=['GET'])
 def home():
-    return render_template("index.html")
+    # Try reading index.html directly from root or templates
+    paths_to_check = ["index.html", "templates/index.html", "Haqdar/index.html"]
+    for path in paths_to_check:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+    return "Error: index.html not found in repository structure.", 404
 
 @app.route("/api/match", methods=['GET'])
 def match_opportunities():
@@ -15,7 +22,6 @@ def match_opportunities():
     state = request.args.get("state", "All India")
     category = request.args.get("category", "General")
 
-    # Comprehensive All-India Mock Database (Scholarships, Exams, and Welfare)
     mock_database = [
         {
             "id": "nat-001",
@@ -38,36 +44,6 @@ def match_opportunities():
             "official_link": "https://upsc.gov.in/"
         },
         {
-            "id": "nat-003",
-            "title": {
-                "en": "PM Young Achievers Scholarship Award Scheme for Vibrant India (YASASVI)",
-                "hi": "पीएम युवा अचीवर्स छात्रवृत्ति योजना (YASASVI)"
-            },
-            "domicile": "All India",
-            "type": "Scholarship",
-            "official_link": "https://socialjustice.gov.in/"
-        },
-        {
-            "id": "nat-004",
-            "title": {
-                "en": "AICTE Pragati Scholarship for Girl Students in Technical Education",
-                "hi": "तकनीकी शिक्षा में छात्राओं के लिए एआईसीटीई प्रगति छात्रवृत्ति"
-            },
-            "domicile": "All India",
-            "type": "Scholarship",
-            "official_link": "https://www.aicte-india.org/"
-        },
-        {
-            "id": "nat-005",
-            "title": {
-                "en": "National Means Cum-Merit Scholarship Scheme (NMMSS)",
-                "hi": "राष्ट्रीय मींस कम-मेरिट छात्रवृत्ति योजना (NMMSS)"
-            },
-            "domicile": "All India",
-            "type": "Scholarship",
-            "official_link": "https://education.gov.in/"
-        },
-        {
             "id": "mah-001",
             "title": {
                 "en": "Maharashtra Post-Matric Scholarship for Backward Class Students",
@@ -79,7 +55,6 @@ def match_opportunities():
         }
     ]
 
-    # Universal matching logic: returns matching state policies plus all national schemes
     filtered = [
         item for item in mock_database 
         if item["domicile"] == state or item["domicile"] == "All India"
