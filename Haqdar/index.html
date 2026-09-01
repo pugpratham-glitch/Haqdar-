@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haqdar - Frontend UI (Member 1)</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for in-browser JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const translations = {
+          en: {
+            title: "90-Second Profile",
+            desc: "Tell us about yourself. All fields are optional.",
+            findBtn: "Find Opportunities",
+            loading: "Searching government databases...",
+            dashboard: "Eligible Opportunities",
+            noMatches: "No opportunities match your current profile.",
+            source: "Official Source",
+            badge: "Member 1 UI Deliverable"
+          },
+          hi: {
+            title: "90-सेकंड प्रोफ़ाइल",
+            desc: "अपने बारे में बताएं। सभी फ़ील्ड वैकल्पिक हैं।",
+            findBtn: "अवसर खोजें",
+            loading: "सरकारी डेटाबेस खोजा जा रहा है...",
+            dashboard: "योग्य अवसर",
+            noMatches: "आपकी वर्तमान प्रोफ़ाइल से कोई अवसर मेल नहीं खाता.",
+            source: "आधिकारिक स्रोत",
+            badge: "सदस्य 1 यूआई प्रस्तुति"
+          }
+        };
+
+        function App() {
+          const [lang, setLang] = useState('en');
+          const [profile, setProfile] = useState({ age: '', income: '', state: '', category: '', education: '' });
+          const [results, setResults] = useState([]);
+          const [hasSearched, setHasSearched] = useState(false);
+          const [loading, setLoading] = useState(false);
+
+          const t = translations[lang];
+
+          const handleChange = (e) => {
+            setProfile({ ...profile, [e.target.name]: e.target.value });
+          };
+
+          const fetchOpportunities = async () => {
+            setLoading(true);
+            setHasSearched(true);
+            
+            const params = new URLSearchParams({
+              age: profile.age,
+              income: profile.income,
+              state: profile.state,
+              category: profile.category,
+              education: profile.education
+            });
+
+            try {
+              // Connects directly to Member 2's Flask API endpoint
+              const response = await fetch(`http://127.0.0.1:5000/api/match?${params}`);
+              const data = await response.json();
+              setResults(data.matches || []);
+            } catch (error) {
+              console.error("API Connection Failed. Ensure Flask backend is running.", error);
+              setResults([]);
+            }
+            
+            setLoading(false);
+          };
+
+          return (
+            <div className="min-h-screen bg-slate-50 p-6 font-sans text-slate-800">
+              <div className="max-w-xl mx-auto space-y-6">
+                
+                {/* Header & Language Toggle */}
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold uppercase tracking-widest bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
+                    {t.badge}
+                  </span>
+                  <button 
+                    onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} 
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold shadow-sm hover:bg-slate-50 transition-colors"
+                  >
+                    {lang === 'en' ? 'हिंदी में बदलें' : 'Switch to English'}
+                  </button>
+                </div>
+
+                {/* Input Screen: 90-Second Profile Form */}
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
+                  <h1 className="text-2xl font-bold text-slate-900">{t.title}</h1>
+                  <p className="text-slate-500 text-sm mt-1 mb-6">{t.desc}</p>
+
+                  <form className="space-y-4" onSubmit={e => { e.preventDefault(); fetchOpportunities(); }}>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Age</label>
+                        <input type="number" name="age" value={profile.age} onChange={handleChange} placeholder="e.g., 20" className="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Income (INR)</label>
+                        <input type="number" name="income" value={profile.income} onChange={handleChange} placeholder="e.g., 150000" className="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">State / Domicile</label>
+                      <select name="state" value={profile.state} onChange={handleChange} className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Select State</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Delhi">Delhi</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Reservation Category</label>
+                      <select name="category" value={profile.category} onChange={handleChange} className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Select Category</option>
+                        <option value="General">General</option>
+                        <option value="OBC">OBC</option>
+                        <option value="SC">SC</option>
+                        <option value="ST">ST</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Highest Education</label>
+                      <select name="education" value={profile.education} onChange={handleChange} className="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Select Education Level</option>
+                        <option value="10th Pass">10th Pass</option>
+                        <option value="12th Pass">12th Pass</option>
+                        <option value="Graduate">Graduate</option>
+                      </select>
+                    </div>
+
+                    <button type="submit" className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm">
+                      {t.findBtn}
+                    </button>
+                  </form>
+                </div>
+
+                {/* Output Screen: Dynamic Results Dashboard */}
+                {hasSearched && (
+                  <div className="space-y-4">
+                    <h2 className="text-xl font-bold text-slate-900">{t.dashboard}</h2>
+                    {loading ? (
+                      <p className="text-center text-slate-500 py-8 bg-white rounded-2xl border border-slate-200">{t.loading}</p>
+                    ) : results.length > 0 ? (
+                      results.map(item => (
+                        <div key={item.id} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md uppercase tracking-wide">
+                            {item.type.replace('_', ' ')}
+                          </span>
+                          <h3 className="text-lg font-bold text-slate-900">{item.title[lang]}</h3>
+                          <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
+                            <span className="text-xs text-slate-500">Domicile: {item.domicile}</span>
+                            <a 
+                              href={item.official_link} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-sm"
+                            >
+                              {t.source} &rarr;
+                            </a>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+                        <p className="text-slate-500 text-sm">{t.noMatches}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
