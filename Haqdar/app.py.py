@@ -1,80 +1,101 @@
-import datetime
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Enables communication with Member 1's frontend
+CORS(app)
+
+@app.route("/", methods=['GET'])
+def home():
+    return render_template("index.html")
 
 @app.route("/api/match", methods=['GET'])
 def match_opportunities():
-    # Capture profile parameters matching Member 1's frontend form
-    age = int(request.args.get("age", 0) or 0)
-    income = int(request.args.get("income", 9999999) or 9999999)
-    category = request.args.get("category", "General")
+    age = request.args.get("age", "0")
+    income = request.args.get("income", "0")
     state = request.args.get("state", "All India")
-    education = request.args.get("education", "")
+    category = request.args.get("category", "General")
 
-    eligible_opportunities = []
-
-    try:
-        # Professor's robust fallback array structure
-        welfare_data = [
-            {
-                "id": "mah-001",
-                "title": {
-                    "en": "Post-Matric Scholarship Scheme for SC Students",
-                    "hi": "अनुसूचित जाति के छात्रों के लिए पोस्ट-मैट्रिक छात्रवृत्ति योजना"
-                },
-                "type": "Scholarship",
-                "domicile": "Maharashtra",
-                "max_income": 250000,
-                "target_category": "SC",
-                "min_age": 16,
-                "max_age": 25,
-                "official_link": "https://mahadbtmahait.gov.in/",
-                "deadline_days": 45,
+    # Comprehensive All-India Mock Database (Scholarships, Exams, and Welfare)
+    mock_database = [
+        {
+            "id": "nat-001",
+            "title": {
+                "en": "National Scholarship Portal (NSP) Central Sector Scheme",
+                "hi": "राष्ट्रीय छात्रवृत्ति पोर्टल केंद्रीय क्षेत्र योजना"
             },
-            {
-                "title": {
-                    "en": "Central Sector Scheme of Scholarship for College Students",
-                    "hi": "कॉलेज के छात्रों के लिए केंद्रीय क्षेत्र छात्रवृत्ति योजना"
-                },
-                "type": "Scholarship",
-                "domicile": "All India",
-                "max_income": 450000,
-                "target_category": "General",
-                "min_age": 18,
-                "max_age": 25,
-                "official_link": "https://scholarships.gov.in/",
-                "deadline_days": 14,
-            }
-        ]
+            "domicile": "All India",
+            "type": "Scholarship",
+            "official_link": "https://scholarships.gov.in/"
+        },
+        {
+            "id": "nat-002",
+            "title": {
+                "en": "UPSC Civil Services Examination Fee Exemption & Coaching Support",
+                "hi": "यूपीएससी सिविल सेवा परीक्षा शुल्क छूट और कोचिंग सहायता"
+            },
+            "domicile": "All India",
+            "type": "Competitive Exam",
+            "official_link": "https://upsc.gov.in/"
+        },
+        {
+            "id": "nat-003",
+            "title": {
+                "en": "PM Young Achievers Scholarship Award Scheme for Vibrant India (YASASVI)",
+                "hi": "पीएम युवा अचीवर्स छात्रवृत्ति योजना (YASASVI)"
+            },
+            "domicile": "All India",
+            "type": "Scholarship",
+            "official_link": "https://socialjustice.gov.in/"
+        },
+        {
+            "id": "nat-004",
+            "title": {
+                "en": "AICTE Pragati Scholarship for Girl Students in Technical Education",
+                "hi": "तकनीकी शिक्षा में छात्राओं के लिए एआईसीटीई प्रगति छात्रवृत्ति"
+            },
+            "domicile": "All India",
+            "type": "Scholarship",
+            "official_link": "https://www.aicte-india.org/"
+        },
+        {
+            "id": "nat-005",
+            "title": {
+                "en": "National Means Cum-Merit Scholarship Scheme (NMMSS)",
+                "hi": "राष्ट्रीय मींस कम-मेरिट छात्रवृत्ति योजना (NMMSS)"
+            },
+            "domicile": "All India",
+            "type": "Scholarship",
+            "official_link": "https://education.gov.in/"
+        },
+        {
+            "id": "mah-001",
+            "title": {
+                "en": "Maharashtra Post-Matric Scholarship for Backward Class Students",
+                "hi": "महाराष्ट्र पिछड़ा वर्ग छात्रों के लिए पोस्ट-मैट्रिक छात्रवृत्ति"
+            },
+            "domicile": "Maharashtra",
+            "type": "Scholarship",
+            "official_link": "https://mahadbtmahadbt.gov.in/"
+        }
+    ]
 
-        # Process filtering logic safely
-        for scheme in welfare_data:
-            income_ok = income <= scheme["max_income"]
-            category_ok = (scheme["target_category"] == "All") or (scheme["target_category"] == category)
-            domicile_ok = (scheme["domicile"] == "All India") or (scheme["domicile"] == state)
-            age_ok = (scheme["min_age"] <= age <= scheme["max_age"]) if age > 0 else True
+    # Universal matching logic: returns matching state policies plus all national schemes
+    filtered = [
+        item for item in mock_database 
+        if item["domicile"] == state or item["domicile"] == "All India"
+    ]
 
-            if income_ok and category_ok and domicile_ok and age_ok:
-                eligible_opportunities.append(
-                    {
-                        "id": scheme.get("id", "sch-00x"),
-                        "title": scheme["title"],
-                        "type": scheme["type"],
-                        "domicile": scheme["domicile"],
-                        "official_link": scheme["official_link"]
-                    }
-                )
-    except Exception as e:
-        print("Filtering Error:", e)
-
-    return jsonify({"success": True, "count": len(eligible_opportunities), "matches": eligible_opportunities})
+    return jsonify({
+        "success": True,
+        "count": len(filtered),
+        "matches": filtered,
+        "received_params": {
+            "age": age,
+            "income": income,
+            "state": state,
+            "category": category
+        }
+    })
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5000)
