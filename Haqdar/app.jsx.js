@@ -49,7 +49,7 @@ export default function App() {
     });
 
     try {
-      const response = await fetch(`http://127.0.0.1:5000/api/match?${params}`);
+      const response = await fetch(`/api/match?age=${age}&income=${income}&state=${state}&category=${category}`);
       const data = await response.json();
       setResults(data.matches || []);
     } catch (error) {
