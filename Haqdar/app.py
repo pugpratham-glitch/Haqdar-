@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -6,20 +6,16 @@ CORS(app)
 
 @app.route("/", methods=['GET'])
 def home():
-    return jsonify({
-        "status": "online",
-        "message": "Haqdar Enterprise Backend is live and operational."
-    })
+    # Serves the actual visual frontend interface
+    return render_template("index.html")
 
 @app.route("/api/match", methods=['GET'])
 def match_opportunities():
-    # Capture query parameters safely
     age = request.args.get("age", "0")
     income = request.args.get("income", "0")
     state = request.args.get("state", "All India")
     category = request.args.get("category", "General")
 
-    # Hardcoded deterministic dataset for verification
     mock_database = [
         {
             "id": "mah-001",
